@@ -44,6 +44,8 @@ namespace Mediapipe.Unity.UI
     private void InitializeView()
     {
       _contentRoot = gameObject.transform.Find(_ContentPath).gameObject.transform;
+      Debug.Log(_contentRoot);
+      Debug.Log(_contentRoot.childCount);
 
       if (!(Logger.InternalLogger is MemoizedLogger))
       {

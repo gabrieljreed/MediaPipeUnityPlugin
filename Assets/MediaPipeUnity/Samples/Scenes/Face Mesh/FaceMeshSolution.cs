@@ -16,6 +16,15 @@ namespace Mediapipe.Unity.FaceMesh
     [SerializeField] private MultiFaceLandmarkListAnnotationController _multiFaceLandmarksAnnotationController;
     [SerializeField] private NormalizedRectListAnnotationController _faceRectsFromLandmarksAnnotationController;
     [SerializeField] private NormalizedRectListAnnotationController _faceRectsFromDetectionsAnnotationController;
+    [SerializeField] private GameObject _blendshapeInfo;
+
+    private BlendshapeInfo _blendshapeInfoScript;
+
+    protected override IEnumerator Start()
+    {
+      _blendshapeInfoScript = _blendshapeInfo.GetComponent<BlendshapeInfo>();
+      return base.Start();
+    }
 
     public int maxNumFaces
     {
@@ -86,7 +95,20 @@ namespace Mediapipe.Unity.FaceMesh
       _faceRectsFromLandmarksAnnotationController.DrawNow(faceRectsFromLandmarks);
       _faceRectsFromDetectionsAnnotationController.DrawNow(faceRectsFromDetections);
       if (faceBlendShapes != null)
-        Debug.Log($"Blendshapes count {faceBlendShapes.Classification.Count}");
+      {
+        Debug.Log($"Blendshapes count (a) {faceBlendShapes.Classification.Count}");
+        // Print out each of the blendshapes
+        foreach (var blendshape in faceBlendShapes.Classification)
+        {
+          Debug.Log($"{blendshape.Label} {blendshape.Score}");
+        }
+      }
+
+      // Loop through the blendshapes and print them to the console
+      foreach (var blendshape in faceBlendShapes.Classification)
+      {
+        Debug.Log($"{blendshape.Label} {blendshape.Score}");
+      }
     }
 
     private void OnFaceDetectionsOutput(object stream, OutputEventArgs<List<Detection>> eventArgs)
@@ -111,7 +133,32 @@ namespace Mediapipe.Unity.FaceMesh
 
     private void OnFaceClassificationsFromBlendShapesOutput(object stream, OutputEventArgs<ClassificationList> eventArgs)
     {
-      Debug.Log($"Blendshapes count {eventArgs.value?.Classification?.Count}");
+      // Debug.Log($"Blendshapes count (b) {eventArgs.value?.Classification?.Count}");
+      // // If we have a valid list of blendshapes, print them to the console
+      // if (eventArgs.value != null)
+      // {
+      //   foreach (var blendshape in eventArgs.value.Classification)
+      //   {
+      //     Debug.Log($"{blendshape.Label} {blendshape.Score}");
+      //   }
+      // }
+
+      if (eventArgs.value?.Classification?.Count == 0 || eventArgs.value == null)
+      {
+        return;
+      }
+
+      // Create a map of the blendshapes where the key is the name of the blendshape and the value is the score
+      var blendshapes = new Dictionary<string, float>();
+      foreach (var blendshape in eventArgs.value.Classification)
+      {
+        blendshapes.Add(blendshape.Label, blendshape.Score);
+      }
+      // Debug.Log(blendshapes);
+      // _blendshapeInfo.GetComponent<BlendshapeInfo>().blendshapes = blendshapes;
+      // _blendshapeInfo.GetComponent<BlendshapeInfo>().BlendShapes = blendshapes;
+      _blendshapeInfoScript.BlendShapes = blendshapes;
+      return;
     }
   }
 }
